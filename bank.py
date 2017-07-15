@@ -95,19 +95,19 @@ conn = Connector('localhost', user='user', passwd='password', db='init')
 @Result.Object
 class Person:
   person_id = int
-  person_name = str
+  name = str
   account_id = int
 
 # perform query and get results
 result = conn.query('SELECT * FROM person')
 for item in result:
   person = item.wrap(Person)
-  print("Hi my name is {0.name} with {0.person_id} and I have ${0.balance}".format(person))
+  print("Hi my name is {0.name} with {0.person_id}".format(person))
 
 @Result.Object
 class Account:
     account_id = int
-    account_type = str
+    acount_type = str
     person_id = int
 
     def transfer_to(self, to_account_id, amount):
@@ -183,6 +183,8 @@ class Account:
                 "Unable to withdraw from database with account id " +
                 self.account_id + " due to insufficient funds");
 
-account1 = item.wrap(Account);
-account1.put(100);
+result = conn.query("select * from person where id = 1");
+for item in result:
+    person1 = item.wrap(Person);
+
 print 'hello'
