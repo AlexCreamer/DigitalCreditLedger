@@ -104,20 +104,6 @@ for item in result:
   person = item.wrap(Person)
   print("Hi my name is {0.name} with {0.person_id} and I have ${0.balance}".format(person))
 
-class LessThanOrEqualToZeroError:
-    """Exception raised for errors in the available balance of an account
-
-    Attributes:
-        account_id -- id of an account
-        balance -- balance of an account
-    """
-
-    def __init__(self, account_id, balance):
-        self.account_id = account_id
-        self.balance = balance
-
-
-
 @Result.Object
 class Account:
     account_id = int
@@ -175,3 +161,28 @@ class Account:
                     (from_amount + amount) +
                     ' from account where person_id = ' +
                     account_id);
+
+    def put(self, amount):
+        self_amount = conn.query(
+            'SELECT balance FROM account where person_id = ' + self.account_id);
+        conn.query(
+            'UPDATE account SET balance = ' +
+                (self_amount + amount) +
+                ' from account where person_id = ' +
+                self.account_id);
+
+    def take(self, amount):
+        self_amount = conn.query(
+            'SELECT balance FROM account where person_id = ' + self.account_id);
+
+        #Checks
+        ##Check if the account transfering from has sufficient funds
+        if self_amount <= 0:
+            if logger.isEnabledFor(logging.INFO):
+                logging.info(
+                "Unable to withdraw from database with account id " +
+                self.account_id + " due to insufficient funds");
+
+account1 = item.wrap(Account);
+account1.put(100);
+print 'hello'
