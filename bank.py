@@ -1,4 +1,5 @@
 import inspect
+import logging
 import MySQLdb as mysql
 
 class Result:
@@ -88,23 +89,89 @@ class Connector:
 ###############################################
 
 # create the connection
-conn = Connector('localhost','root','password', 'test')
+conn = Connector('localhost', user='user', passwd='password', db='init')
 
 # custom class to wrap in
 @Result.Object
 class Person:
-  id = int
-  name = str
-  balance = float
+  person_id = int
+  person_name = str
+  account_id = int
 
 # perform query and get results
-result = conn.query('SELECT * FROM test')
+result = conn.query('SELECT * FROM person')
 for item in result:
   person = item.wrap(Person)
-  print("Hi my name is {0.name} with {0.id} and I have ${0.balance}".format(person))
+  print("Hi my name is {0.name} with {0.person_id} and I have ${0.balance}".format(person))
+
+class LessThanOrEqualToZeroError:
+    """Exception raised for errors in the available balance of an account
+
+    Attributes:
+        account_id -- id of an account
+        balance -- balance of an account
+    """
+
+    def __init__(self, account_id, balance):
+        self.account_id = account_id
+        self.balance = balance
+
+
 
 @Result.Object
 class Account:
-    id = int
+    account_id = int
+    account_type = str
     person_id = int
-    type = string
+
+    def transfer_to(self, to_account_id, amount):
+        #Getters
+        self_amount = conn.query(
+            'SELECT balance FROM account where person_id = ' + self.account_id);
+        to_amount = conn.query(
+            'SELECT balance FROM account where person_id = ' + to_account_id);
+
+        #Checks
+        ##Check if the account transfering from has sufficient funds
+        if self_amount <= 0:
+            if logger.isEnabledFor(logging.INFO):
+                logging.info(
+                "Unable to withdraw from database with account id " +
+                self_amount + " due to insufficient funds");
+        else:
+            #Setters
+            conn.query(
+                'UPDATE account SET balance = ' + (to_amount + amount) +
+                    ' where person_id = ' +
+                    to_account_id);
+            conn.query(
+                'UPDATE account SET balance = ' +
+                    (self_amount - amount) + ' where person_id = ' +
+                    self.account_id);
+
+    def transfer_from(self, from_account_id, amount):
+        #Getters
+        from_amount = conn.query(
+            'SELECT balance FROM account where person_id = ' + from_account_id);
+        self_amount = conn.query(
+            'SELECT balance FROM account where person_id = ' + self.account_id);
+
+        #Checks
+        ##Check if the account transfering from has sufficient funds
+        if from_amount <= 0:
+            if logger.isEnabledFor(logging.INFO):
+                logging.info(
+                "Unable to withdraw from database with account id " +
+                from_account_id + " due to insufficient funds");
+        else:
+            #Setters
+            conn.query(
+                'UPDATE account SET balance = ' +
+                    (from_amount - amount) +
+                    ' from account where person_id = ' +
+                    from_account_id);
+            conn.query(
+                'UPDATE account SET balance = ' +
+                    (from_amount + amount) +
+                    ' from account where person_id = ' +
+                    account_id);
