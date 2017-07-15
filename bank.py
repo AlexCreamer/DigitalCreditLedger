@@ -183,7 +183,7 @@ class Account:
                 "Unable to withdraw from database with account id " +
                 self.account_id + " due to insufficient funds");
 
-result = conn.query("select * from person where id = 1");
+result = conn.query("select * from person where person_id = 1");
 for item in result:
     person1 = item.wrap(Person);
 
