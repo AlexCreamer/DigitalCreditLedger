@@ -75,7 +75,6 @@ class Connector:
     # add arguments to query
     query = (query,) + (args if len(args) > 0 else ())
     # execute command and gather results
-    print(query)
     self.cursor.execute(*query)
 
     # iterate through the fond results
@@ -105,75 +104,65 @@ class Account:
     acount_type = str
     person_id = int
 
-    def transfer_to(self, to_account_id, amount):
-        #Getters
-        self_amount = conn.query(
-            'SELECT balance FROM account where person_id = ' + self.account_id);
-        to_amount = conn.query(
-            'SELECT balance FROM account where person_id = ' + to_account_id);
+    def transfer(from_account_id, to_account_id, amount):
+        from_amount = get_balance(from_account_id)
+        to_amount = get_balance(to_account_id)
 
-        #Checks
-        ##Check if the account transfering from has sufficient funds
-        if self_amount <= 0:
-            if logger.isEnabledFor(logging.INFO):
-                logging.info(
-                "Unable to withdraw from database with account id " +
-                self_amount + " due to insufficient funds");
-        else:
-            #Setters
-            conn.query(
-                'UPDATE account SET balance = ' + (to_amount + amount) +
-                    ' where person_id = ' +
-                    to_account_id);
-            conn.query(
-                'UPDATE account SET balance = ' +
-                    (self_amount - amount) + ' where person_id = ' +
-                    self.account_id);
-
-    def transfer_from(self, from_account_id, amount):
-        #Getters
-        from_amount = conn.query(
-            'SELECT balance FROM account where person_id = ' + from_account_id);
-        self_amount = conn.query(
-            'SELECT balance FROM account where person_id = ' + self.account_id);
-
-        #Checks
-        ##Check if the account transfering from has sufficient funds
-        if from_amount <= 0:
+        if from_amount - amount <= 0:
             if logger.isEnabledFor(logging.INFO):
                 logging.info(
                 "Unable to withdraw from database with account id " +
                 from_account_id + " due to insufficient funds");
+            return False
+
         else:
-            #Setters
-            conn.query(
-                'UPDATE account SET balance = ' +
-                    (from_amount - amount) +
-                    ' from account where person_id = ' +
-                    from_account_id);
-            conn.query(
-                'UPDATE account SET balance = ' +
-                    (from_amount + amount) +
-                    ' from account where person_id = ' +
-                    account_id);
+            update_balance(from_account_id, from_account - amount)
+            update_balance(to_account_id, to_amount + amount)
+            return True
+
+    def transfer_to_other(self, other_account_id, amount):
+        if transfer(self.account_id, other_account_id, amount):
+            self.amount = self.amount - amount
+            return True
+        return False
+
+
+    def transfer_from_other(self, from_account_id, amount):
+        if transfer(from_account_id, self.account_id, amount):
+            self.amount = self.amount + amount
+            return True
+        return False
 
     def put(self, amount):
-        self_amount = conn.query(
-            'SELECT balance FROM account where person_id = ' + self.account_id);
-        conn.query(
-            'UPDATE account SET balance = ' +
-                (self_amount + amount) +
-                ' from account where person_id = ' +
-                self.account_id);
+        self.amount = self.get_self_balance()
+        self.update_balance(self.account_id, amount)
 
     def take(self, amount):
-        self_amount = conn.query(
-            'SELECT balance FROM account where person_id = ' + self.account_id);
+        self.amount = self.get_self_balance()
 
-        #Checks
         ##Check if the account transfering from has sufficient funds
         if self_amount <= 0:
             if logger.isEnabledFor(logging.INFO):
                 logging.info(
                 "Unable to withdraw from database with account id " +
                 self.account_id + " due to insufficient funds");
+
+    # Get the balance of the current account
+    def get_self_balance(self):
+        query_str = 'SELECT balance FROM account where account_id=%s';
+        result = conn.query(query_str, self.account_id)
+        return next(result).balance
+
+    # Gets the balance of the account transfering funds from
+    def get_balance(self, account_id):
+        query = 'SELECT balance FROM account where account_id=%s';
+        result = conn.query(query, account_id)
+        return next(result).balance
+
+    def update_self_balance(self, amount):
+        query_str = "UPDATE account SET balance = %s from account where account_id = %s"
+        conn.query(query_str, amount, self.account_id)
+
+    def update_balance(self, account_id, amount):
+        query_str = "UPDATE account SET balance = %s from account where account_id = %s"
+        conn.query(query_str, amount, account_id)

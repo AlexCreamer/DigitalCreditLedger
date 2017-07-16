@@ -15,3 +15,9 @@ result = conn.query("select * from person where `person_id` = 1");
 first = list(result)[0]
 person1 = first.wrap(bank.Person);
 print ("Person 1 has id {0.name} and has name {0.person_id}".format(person1));
+
+# deposit money into accounts account
+result = conn.query("select * from account where `account_id` = 1");
+first = list(result)[0]
+account1 = first.wrap(bank.Account);
+account1 = account1.put(10)
