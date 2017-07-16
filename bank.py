@@ -1,6 +1,6 @@
 import inspect
 import logging
-import MySQLdb as mysql
+import pymysql.cursors
 
 class Result:
   def __init__(self, data):
@@ -49,7 +49,7 @@ class Connector:
       if field is None:
         raise ValueError("{} is empty!".format(field))
     self.closed = True
-    self.conn = mysql.connect(
+    self.conn = pymysql.connect(
       host=host, user=user, passwd=passwd, db=db)
     self.cursor = self.conn.cursor()
     self.closed = False
@@ -75,6 +75,7 @@ class Connector:
     # add arguments to query
     query = (query,) + (args if len(args) > 0 else ())
     # execute command and gather results
+    print(query)
     self.cursor.execute(*query)
 
     # iterate through the fond results
