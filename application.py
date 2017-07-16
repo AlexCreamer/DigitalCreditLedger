@@ -1,4 +1,10 @@
 import bank
+from clint import arguments
+
+# Get user arguments
+args = arguments.Args()
+if args.get(0) is None:
+    print ("No functonality has been built yet for command line arguments")
 
 conn = bank.Connector('localhost', user='user', passwd='password', db='init')
 
@@ -21,3 +27,13 @@ result = conn.query("select * from account where `account_id` = 1");
 first = list(result)[0]
 account1 = first.wrap(bank.Account);
 account1 = account1.put(10)
+
+print ("\n**************** interface for connecting ****************")
+result = input("Enter something\n")
+
+if result == 'deposit':
+    account_id = input("\nEnter account id\n")
+    amount = input("\n Enter amount to deposit\n")
+    bank.deposit(1,100)
+    print ("Balance is now: ")
+    print (bank.get_balance(account_id = 1))

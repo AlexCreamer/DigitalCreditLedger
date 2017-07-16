@@ -84,10 +84,6 @@ class Connector:
       result = {info[x][0]:row[x] for x in range(len(row))}
       yield Result(result)
 
-###############################################
-######             Usage                  #####
-###############################################
-
 # create the connection
 conn = Connector('localhost', user='user', passwd='password', db='init')
 
@@ -125,7 +121,6 @@ class Account:
             self.amount = self.amount - amount
             return True
         return False
-
 
     def transfer_from_other(self, from_account_id, amount):
         if transfer(from_account_id, self.account_id, amount):
@@ -166,3 +161,11 @@ class Account:
     def update_balance(self, account_id, amount):
         query_str = "UPDATE account SET balance = %s from account where account_id = %s"
         conn.query(query_str, amount, account_id)
+
+def deposit(account_id, amount):
+    query_str = "UPDATE account SET balance = %s from account where account_id = %s"
+    conn.query(query_str, amount, account_id)
+
+def get_balance(account_id):
+    query_str = 'SELECT balance FROM account where account_id=%s';
+    conn_query(query_str, account_id)
