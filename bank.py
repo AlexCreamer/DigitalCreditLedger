@@ -66,23 +66,26 @@ class Connector:
       self.closed = True
 
   def query(self, query, *args):
-    """
-    Perform an sql query
-    and return results as generator
-    """
-    # convert arguments to tuple if not
-    args = (args,) if len(args) > 1 else args
-    # add arguments to query
-    query = (query,) + (args if len(args) > 0 else ())
-    # execute command and gather results
-    self.cursor.execute(*query)
+      """ Perform an sql query and return results as generator """
 
-    # iterate through the fond results
-    for i in range(self.cursor.rowcount):
-      row    = self.cursor.fetchone()
-      info   = self.cursor.description
-      result = {info[x][0]:row[x] for x in range(len(row))}
-      yield Result(result)
+      # unpack arguments into a single tuple
+      if len(args) == 1 and isinstance(args[0], tuple):
+          args = args[0]
+      args = [(a,) if not isinstance(a, tuple) else a for a in args]
+      args = tuple([arg for a in args for arg in a])
+
+      # combine query with arguments tuple
+      query = (query,) + ((args,) if len(args) > 0 else ())
+
+      # execute command and get column names
+      self.cursor.execute(*query)
+      info = self.cursor.description
+
+      # yield fetched results one by one
+      for _ in range(self.cursor.rowcount):
+          row = self.cursor.fetchone()
+          result = {info[i][0] : row[i] for i in range(len(row))}
+          yield Result(result)
 
 # create the connection
 conn = Connector('localhost', user='user', passwd='password', db='init')
@@ -169,11 +172,12 @@ def deposit(account_id, amount):
     query_str = 'SELECT balance FROM account where `account_id`=%s';
     result = conn.query(query_str, account_id)
 
-    print(list(result)[0].__dict__)
     balance = next(result).balance
     print ("balance %s" % balance)
-    query_str = "UPDATE account SET balance = %s from account where account_id = %s"
-    result = conn.query(query_str, balance + amount, account_id)
+    query_str = "UPDATE account SET balance = %s from `account` where `account_id` = %s"
+    result = conn.query(query_str, int(balance) + int(amount), account_id)
+
+    print(list(result)[0].__dict__)
 
 
 def get_balance(account_id):
