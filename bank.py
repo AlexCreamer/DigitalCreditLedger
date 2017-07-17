@@ -160,15 +160,16 @@ class Account:
         conn.query(query_str, amount, self.account_id)
 
     def update_balance(self, account_id, amount):
-        query_str = "UPDATE account SET balance = %s from account where account_id = %d"
+        query_str = "UPDATE account SET balance = %s from account where account_id = %s"
         conn.query(query_str, amount, account_id)
 
 def deposit(account_id, amount):
     print ("amount %s" % amount)
 
-    query_str = 'SELECT balance FROM account where `account_id`=%d';
-    result = conn.query(query_str, int(account_id))
+    query_str = 'SELECT balance FROM account where `account_id`=%s';
+    result = conn.query(query_str, account_id)
 
+    print(list(result)[0].__dict__)
     balance = next(result).balance
     print ("balance %s" % balance)
     query_str = "UPDATE account SET balance = %s from account where account_id = %s"

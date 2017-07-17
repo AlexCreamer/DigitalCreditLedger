@@ -34,6 +34,6 @@ result = input("Enter something\n")
 if result == 'deposit':
     account_id = input("\nEnter account id\n")
     amount = input("\n Enter amount to deposit\n")
-    bank.deposit(1,100)
+    bank.deposit(1,amount)
     print ("Balance is now: ")
     print (bank.get_balance(account_id = 1))
