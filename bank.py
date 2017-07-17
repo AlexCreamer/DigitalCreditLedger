@@ -99,6 +99,7 @@ class Account:
     account_id = int
     acount_type = str
     person_id = int
+    balance = int
 
     def transfer(from_account_id, to_account_id, amount):
         from_amount = get_balance(from_account_id)
@@ -150,8 +151,8 @@ class Account:
 
     # Gets the balance of the account transfering funds from
     def get_balance(self, account_id):
-        query = 'SELECT balance FROM account where account_id=%s';
-        result = conn.query(query, account_id)
+        query_str = 'SELECT balance FROM account where account_id=%s';
+        result = conn.query(query_str, account_id)
         return next(result).balance
 
     def update_self_balance(self, amount):
@@ -159,13 +160,22 @@ class Account:
         conn.query(query_str, amount, self.account_id)
 
     def update_balance(self, account_id, amount):
-        query_str = "UPDATE account SET balance = %s from account where account_id = %s"
+        query_str = "UPDATE account SET balance = %s from account where account_id = %d"
         conn.query(query_str, amount, account_id)
 
 def deposit(account_id, amount):
+    print ("amount %s" % amount)
+
+    query_str = 'SELECT balance FROM account where `account_id`=%d';
+    result = conn.query(query_str, int(account_id))
+
+    balance = next(result).balance
+    print ("balance %s" % balance)
     query_str = "UPDATE account SET balance = %s from account where account_id = %s"
-    conn.query(query_str, amount, account_id)
+    result = conn.query(query_str, balance + amount, account_id)
+
 
 def get_balance(account_id):
     query_str = 'SELECT balance FROM account where account_id=%s';
-    conn_query(query_str, account_id)
+    result = conn.query(query_str, account_id)
+    return next(result).balance
